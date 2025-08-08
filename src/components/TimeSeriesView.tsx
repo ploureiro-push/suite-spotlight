@@ -9,21 +9,34 @@ import { RunSelector } from './RunSelector';
 import { TestRun } from '@/types/test-history';
 
 interface TimeSeriesViewProps {
-  runs: TestRun[];
-  trendData: TrendData[];
-  selectedRunId: string | null;
-  onSelectRun: (runId: string) => void;
-  onBackToSingle: () => void;
+  testRuns: TestRun[];
+  loading: boolean;
+  error: string | null;
+  onRefresh: () => void;
 }
 
 export function TimeSeriesView({ 
-  runs, 
-  trendData, 
-  selectedRunId, 
-  onSelectRun, 
-  onBackToSingle 
+  testRuns, 
+  loading, 
+  error, 
+  onRefresh 
 }: TimeSeriesViewProps) {
-  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(
+    testRuns.length > 0 ? testRuns[testRuns.length - 1].id : null
+  );
+
+  const trendData: TrendData[] = testRuns.map(run => ({
+    runNumber: run.runNumber,
+    timestamp: run.timestamp,
+    totalTests: run.results.total_count,
+    successCount: run.results.success_count,
+    failedCount: run.results.failed_count,
+    errorCount: run.results.error_count,
+    skippedCount: run.results.skipped_count,
+    successRate: (run.results.success_count / run.results.total_count) * 100,
+    totalTime: run.results.total_time,
+    fileName: run.fileName
+  }));
 
   const getOverallTrends = () => {
     if (trendData.length < 2) return null;
@@ -44,32 +57,15 @@ export function TimeSeriesView({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
-            onClick={onBackToSingle}
-            className="border-border/50 hover:bg-secondary"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Single Run
-          </Button>
-          <div>
-            <h2 className="text-2xl font-semibold flex items-center gap-2">
-              <TrendingUp className="h-6 w-6 text-primary" />
-              Test Evolution Analysis
-            </h2>
-            <p className="text-muted-foreground">
-              Analyzing {runs.length} test runs over time
-            </p>
-          </div>
+        <div>
+          <h2 className="text-2xl font-semibold flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-primary" />
+            Test Evolution Analysis
+          </h2>
+          <p className="text-muted-foreground">
+            Analyzing {testRuns.length} test runs over time
+          </p>
         </div>
-        
-        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'overview' | 'detailed')}>
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="detailed">Detailed</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       {trends && (
@@ -138,21 +134,15 @@ export function TimeSeriesView({
         </div>
       )}
 
-      <TabsContent value="overview" className={viewMode === 'overview' ? 'block' : 'hidden'}>
+      <div className="space-y-6">
+        <RunSelector 
+          runs={testRuns}
+          selectedRunId={selectedRunId}
+          onSelectRun={setSelectedRunId}
+        />
+        
         <TrendChart data={trendData} />
-      </TabsContent>
-
-      <TabsContent value="detailed" className={viewMode === 'detailed' ? 'block' : 'hidden'}>
-        <div className="space-y-6">
-          <RunSelector 
-            runs={runs}
-            selectedRunId={selectedRunId}
-            onSelectRun={onSelectRun}
-          />
-          
-          <TrendChart data={trendData} />
-        </div>
-      </TabsContent>
+      </div>
     </div>
   );
 }

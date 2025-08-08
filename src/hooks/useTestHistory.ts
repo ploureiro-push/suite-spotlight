@@ -1,110 +1,75 @@
-import { useState, useCallback } from 'react';
-import { TestHistory, TestRun, TrendData } from '@/types/test-history';
+import { useState, useCallback, useEffect } from 'react';
+import { TestRun, TrendData } from '@/types/test-history';
 import { TestResults } from '@/types/test-results';
 
 export function useTestHistory() {
-  const [testHistory, setTestHistory] = useState<TestHistory>({
-    runs: [],
-    selectedRunId: null
-  });
+  const [testRuns, setTestRuns] = useState<TestRun[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const extractRunNumber = (fileName: string): number => {
-    const match = fileName.match(/(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
-  };
-
-  const loadTestFiles = useCallback(async (files: FileList) => {
-    setIsLoading(true);
+  const loadTestFiles = useCallback(async () => {
+    setLoading(true);
     setError(null);
     
     try {
+      // First, fetch the index file that lists all available test files
+      const indexResponse = await fetch('/test-results/index.json');
+      if (!indexResponse.ok) {
+        throw new Error('Could not load test results index');
+      }
+      
+      const fileList: string[] = await indexResponse.json();
       const runs: TestRun[] = [];
       
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!file.name.endsWith('.json')) continue;
-        
+      // Fetch each test file
+      for (const fileName of fileList) {
         try {
-          const text = await file.text();
-          const results = JSON.parse(text) as TestResults;
-          const runNumber = extractRunNumber(file.name);
+          const fileResponse = await fetch(`/test-results/${fileName}`);
+          if (!fileResponse.ok) continue;
+          
+          const results = await fileResponse.json() as TestResults;
+          
+          // Extract run number from filename (e.g., "test_run_001.json" -> 1)
+          const runNumberMatch = fileName.match(/(\d+)/);
+          const runNumber = runNumberMatch ? parseInt(runNumberMatch[1], 10) : runs.length + 1;
           
           runs.push({
-            id: `${file.name}-${Date.now()}-${i}`,
+            id: `${fileName}-${runNumber}`,
             runNumber,
-            fileName: file.name,
-            timestamp: new Date(file.lastModified || Date.now()),
+            fileName,
+            timestamp: new Date(),
             results
           });
         } catch (err) {
-          console.warn(`Failed to parse ${file.name}:`, err);
+          console.error(`Error loading file ${fileName}:`, err);
         }
-      }
-      
-      if (runs.length === 0) {
-        setError('No valid JSON test files found');
-        return;
       }
       
       // Sort by run number
       runs.sort((a, b) => a.runNumber - b.runNumber);
-      
-      setTestHistory({
-        runs,
-        selectedRunId: runs[runs.length - 1]?.id || null // Select latest run
-      });
-      
+      setTestRuns(runs);
     } catch (err) {
-      setError('Failed to load test files');
+      setError(err instanceof Error ? err.message : 'Failed to load test files');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
-  const selectRun = useCallback((runId: string) => {
-    setTestHistory(prev => ({
-      ...prev,
-      selectedRunId: runId
-    }));
-  }, []);
+  // Auto-load on mount and refresh every 30 seconds
+  useEffect(() => {
+    loadTestFiles();
+    const interval = setInterval(loadTestFiles, 30000);
+    return () => clearInterval(interval);
+  }, [loadTestFiles]);
 
-  const clearHistory = useCallback(() => {
-    setTestHistory({
-      runs: [],
-      selectedRunId: null
-    });
-    setError(null);
-  }, []);
-
-  const getTrendData = useCallback((): TrendData[] => {
-    return testHistory.runs.map(run => ({
-      runNumber: run.runNumber,
-      timestamp: run.timestamp,
-      totalTests: run.results.total_count,
-      successCount: run.results.success_count,
-      failedCount: run.results.failed_count,
-      errorCount: run.results.error_count,
-      skippedCount: run.results.skipped_count,
-      successRate: (run.results.success_count / run.results.total_count) * 100,
-      totalTime: run.results.total_time,
-      fileName: run.fileName
-    }));
-  }, [testHistory.runs]);
-
-  const getSelectedRun = useCallback((): TestRun | null => {
-    return testHistory.runs.find(run => run.id === testHistory.selectedRunId) || null;
-  }, [testHistory]);
+  const refreshFiles = useCallback(() => {
+    loadTestFiles();
+  }, [loadTestFiles]);
 
   return {
-    testHistory,
+    testRuns,
+    loading,
     error,
-    isLoading,
-    loadTestFiles,
-    selectRun,
-    clearHistory,
-    getTrendData,
-    getSelectedRun
+    refreshFiles
   };
 }
