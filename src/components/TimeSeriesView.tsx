@@ -26,7 +26,10 @@ export function TimeSeriesView({
     testRuns.length > 0 ? testRuns[testRuns.length - 1].id : null
   );
 
-  const trendData: TrendData[] = testRuns.map(run => ({
+  // Sort test runs by run number to ensure proper chronological order
+  const sortedRuns = [...testRuns].sort((a, b) => a.runNumber - b.runNumber);
+  
+  const trendData: TrendData[] = sortedRuns.map(run => ({
     runNumber: run.runNumber,
     timestamp: run.timestamp,
     totalTests: run.results.total_count,
@@ -61,10 +64,10 @@ export function TimeSeriesView({
         <div>
           <h2 className="text-2xl font-semibold flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-primary" />
-            Test Evolution Analysis
+            Test Evolution Across Files
           </h2>
           <p className="text-muted-foreground">
-            Analyzing {testRuns.length} test runs over time
+            Comparing trends across {testRuns.length} sequential test result files
           </p>
         </div>
       </div>

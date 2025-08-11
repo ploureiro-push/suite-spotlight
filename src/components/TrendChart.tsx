@@ -16,7 +16,7 @@ export function TrendChart({ data }: TrendChartProps) {
       const data = payload[0].payload;
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-strong">
-          <p className="font-medium text-foreground mb-2">Run #{label}</p>
+          <p className="font-medium text-foreground mb-2">File #{label}</p>
           <p className="text-sm text-muted-foreground mb-1">{data.fileName}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
@@ -59,7 +59,7 @@ export function TrendChart({ data }: TrendChartProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          Test Evolution Trends
+          Cross-File Trend Analysis
         </CardTitle>
       </CardHeader>
       <CardContent>
