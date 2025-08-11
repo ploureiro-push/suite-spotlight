@@ -139,7 +139,7 @@ export function TrendChart({ data }: TrendChartProps) {
           <TabsContent value="test-counts" className="space-y-4">
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={testCountData}>
+                <LineChart data={testCountData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis 
                     dataKey="runNumber" 
@@ -152,11 +152,12 @@ export function TrendChart({ data }: TrendChartProps) {
                   />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
-                  <Bar dataKey="passed" stackId="a" fill="hsl(var(--success))" name="Passed" />
-                  <Bar dataKey="failed" stackId="a" fill="hsl(var(--error))" name="Failed" />
-                  <Bar dataKey="errors" stackId="a" fill="hsl(var(--destructive))" name="Errors" />
-                  <Bar dataKey="skipped" stackId="a" fill="hsl(var(--warning))" name="Skipped" />
-                </BarChart>
+                  <Line type="monotone" dataKey="passed" stroke="hsl(var(--success))" strokeWidth={2} name="Passed" />
+                  <Line type="monotone" dataKey="failed" stroke="hsl(var(--error))" strokeWidth={2} name="Failed" />
+                  <Line type="monotone" dataKey="errors" stroke="hsl(var(--destructive))" strokeWidth={2} name="Errors" />
+                  <Line type="monotone" dataKey="skipped" stroke="hsl(var(--warning))" strokeWidth={2} name="Skipped" />
+                  <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={3} name="Total" strokeDasharray="5 5" />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </TabsContent>
