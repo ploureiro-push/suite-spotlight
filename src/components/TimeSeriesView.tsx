@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendData } from '@/types/test-history';
 import { TrendChart } from './TrendChart';
 import { RunSelector } from './RunSelector';
+import { TestSuiteBreakdown } from './TestSuiteBreakdown';
 import { TestRun } from '@/types/test-history';
 
 interface TimeSeriesViewProps {
@@ -134,15 +135,26 @@ export function TimeSeriesView({
         </div>
       )}
 
-      <div className="space-y-6">
-        <RunSelector 
-          runs={testRuns}
-          selectedRunId={selectedRunId}
-          onSelectRun={setSelectedRunId}
-        />
-        
-        <TrendChart data={trendData} />
-      </div>
+      <Tabs defaultValue="trends" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="trends">Trends Overview</TabsTrigger>
+          <TabsTrigger value="suites">Test Suite Breakdown</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="trends" className="space-y-6">
+          <RunSelector 
+            runs={testRuns}
+            selectedRunId={selectedRunId}
+            onSelectRun={setSelectedRunId}
+          />
+          
+          <TrendChart data={trendData} />
+        </TabsContent>
+
+        <TabsContent value="suites" className="space-y-6">
+          <TestSuiteBreakdown testRuns={testRuns} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
