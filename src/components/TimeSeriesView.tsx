@@ -7,6 +7,7 @@ import { TrendData } from '@/types/test-history';
 import { TrendChart } from './TrendChart';
 import { RunSelector } from './RunSelector';
 import { TestSuiteBreakdown } from './TestSuiteBreakdown';
+import { TestRunMetadata } from './TestRunMetadata';
 import { TestRun } from '@/types/test-history';
 
 interface TimeSeriesViewProps {
@@ -139,9 +140,10 @@ export function TimeSeriesView({
       )}
 
       <Tabs defaultValue="trends" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="trends">Trends Overview</TabsTrigger>
           <TabsTrigger value="suites">Test Suite Breakdown</TabsTrigger>
+          <TabsTrigger value="metadata">Test Run Metadata</TabsTrigger>
         </TabsList>
 
         <TabsContent value="trends" className="space-y-6">
@@ -156,6 +158,10 @@ export function TimeSeriesView({
 
         <TabsContent value="suites" className="space-y-6">
           <TestSuiteBreakdown testRuns={testRuns} />
+        </TabsContent>
+        
+        <TabsContent value="metadata" className="space-y-6">
+          <TestRunMetadata testRuns={testRuns} />
         </TabsContent>
       </Tabs>
     </div>

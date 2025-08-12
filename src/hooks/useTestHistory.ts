@@ -37,7 +37,7 @@ export function useTestHistory() {
             id: `${fileName}-${runNumber}`,
             runNumber,
             fileName,
-            timestamp: new Date(),
+            timestamp: new Date(results.created_at),
             results
           });
         } catch (err) {

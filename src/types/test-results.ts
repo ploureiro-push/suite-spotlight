@@ -22,6 +22,9 @@ export interface TestSuite {
 }
 
 export interface TestResults {
+  sha: string;
+  created_at: string;
+  pipeline_id?: string;
   total_time: number;
   total_count: number;
   success_count: number;
