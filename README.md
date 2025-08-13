@@ -62,7 +62,43 @@ This project is built with:
 
 ## How can I deploy this project?
 
+**Deploy via Lovable**
+
 Simply open [Lovable](https://lovable.dev/projects/720ddf85-da1b-4a33-a7c2-67e9e05272c8) and click on Share -> Publish.
+
+**Deploy to GitLab Pages**
+
+To deploy this project to GitLab Pages, follow these steps:
+
+1. Create a `.gitlab-ci.yml` file in the root of your project with the following content:
+
+```yaml
+# GitLab CI/CD pipeline for deploying to GitLab Pages
+image: node:lts
+
+cache:
+  paths:
+    - node_modules/
+
+pages:
+  stage: deploy
+  script:
+    - npm ci
+    - npm run build
+    - cp -a dist/. public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+2. Push your code to a GitLab repository
+3. Go to your GitLab project's Settings > Pages
+4. The site will be automatically built and deployed when you push to the main branch
+5. Your site will be available at `https://yourusername.gitlab.io/yourprojectname`
+
+**Note**: Make sure your GitLab project has Pages enabled and the pipeline runs successfully.
 
 ## Can I connect a custom domain to my Lovable project?
 
